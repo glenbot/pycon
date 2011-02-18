@@ -64,6 +64,24 @@ def schedule_list_talks(request):
     }), context_instance=RequestContext(request))
 
 
+def schedule_list_talks_expanded(request):
+    
+    talks = Presentation.objects.filter(
+        presentation_type__in=[Presentation.PRESENTATION_TYPE_TALK]
+    )
+    talks = talks.order_by("pk")
+
+    panels = Presentation.objects.filter(
+        presentation_type__in=[Presentation.PRESENTATION_TYPE_PANEL]
+    )
+    panels = panels.order_by("pk")
+    
+    return render_to_response("schedule/list_talks_expanded.html", dict({
+        "talks": talks,
+        "panels": panels
+    }), context_instance=RequestContext(request))
+
+
 def schedule_list_tutorials(request):
     
     tutorials = Presentation.objects.filter(

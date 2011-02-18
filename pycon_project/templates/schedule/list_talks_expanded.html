@@ -1,0 +1,261 @@
+{% extends "schedule/base.html" %}
+
+{% load timezone_filters %}
+
+{% block extra_head %}
+    <style>
+        .session {
+            margin-top: 15px;
+            padding: 10px;
+        }
+        .session-alt {
+            background: #f2f2f2;
+        }
+        .description {
+            margin: 10px 0 10px 0;
+        }
+        .abstract {
+            margin: 10px 0 10px 0;
+        }        
+        .title {
+            font-size: 14pt;
+            font-weight: bold;
+        }
+        .quicklinks {
+            border: 1px solid #CCC;
+            padding: 5px;
+            margin: 10px 0 10px 0;
+            display: none;
+        }
+        .quicklinks ul li {
+            list-style-type: none;
+            margin-top: 4px;
+        }
+        .quicklinks ul li a {
+            float: left;
+            margin-right: 10px;
+        }
+        .quicklinks ul li div.badge {
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .alt {
+            background-color: #f2f2f2;
+            -webkit-border-radius: 3px;
+            -moz-border-radius: 3px;
+            border-radius: 3px;
+        }
+        .float-left {
+            float: left;
+        }
+        .talk-panel-menu {
+            font-size: 16pt;
+            margin-bottom: 10px;
+        }
+        h2#talks, h2#panels {
+            border-bottom: 1px solid #CCC;
+        }
+    </style>
+    <style type="text/css" media="print">
+        #tabhead {
+            display: none;
+        }
+        #footer {
+            display: none;
+        }
+        #body {
+            margin: 0;
+            padding: 0;
+        }
+        #subnav {
+            display: none;
+        }
+        .talk-panel-menu {
+            display: none;
+        }
+        .top-link {
+            display: none;
+        }
+    </style>
+
+{% endblock %}
+
+{% block subnav %}
+    <a href="{% url schedule_list_talks %}">List of Accepted Talks and Panels</a>
+    |
+    <a href="{% url schedule_tutorials %}">Tutorial Schedule</a>
+    |
+    <a href="{% url schedule_list_posters %}">List of Accepted Posters</a>
+{% endblock %}
+
+{% block body %}
+    <h1>Accepted Talks and Panels Expanded</h1>
+    
+    <div class="talk-panel-menu" id="top">
+        <a href="#talks">Talks</a>&nbsp;|&nbsp;
+        <a href="#panels">Panels</a>&nbsp;|&nbsp;
+        <a href="javascript:window.print();">Printable</a>
+    </div>
+    <div class="badges legend">
+        <div class="badge extreme">E</div><div class="label"> = EXTREME PyCon</div>
+        <div class="clear"></div>
+        <div class="badge invited">I</div><div class="label"> = Invited</div>
+    </div>
+
+    {% if talks %}
+    <div class="all-talks quicklinks">
+        <ul>
+        {% for talk in talks %}
+            <li>
+                <a href="#{{ talk.title|slugify }}">{{ talk.title }}</a>
+                {% if talk.extreme_pycon or talk.invited %}
+                    <div class="badges float-left">
+                    {% if talk.extreme_pycon %}
+                        <div class="badge extreme">E</div>
+                    {% endif %}
+                    {% if talk.invited %}
+                        <div class="badge invited">I</div>
+                    {% endif %}
+                    </div>
+                {% endif %}
+                <div class="clear"></div>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if panels %}
+    <div class="all-panels quicklinks">
+        <ul>
+        {% for panel in panels %}
+            <li>
+                <a href="#{{ panel.title|slugify }}">{{ panel.title }}</a>
+                {% if panel.extreme_pycon or panel.invited %}
+                    <div class="badges float-left">
+                    {% if panel.extreme_pycon %}
+                        <div class="badge extreme">E</div>
+                    {% endif %}
+                    {% if panel.invited %}
+                        <div class="badge invited">I</div>
+                    {% endif %}
+                    </div>
+                {% endif %}
+                <div class="clear"></div>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <h2 id="talks">Talks</h2>
+    {% for talk in talks %}
+        <div class="session{% cycle '' ' alt' %}" id="{{ talk.title|slugify }}">
+            <div class="title">
+                <a href="{% url schedule_presentation talk.pk %}">{{ talk.title }}</a>
+            </div>
+            <div class="metadata">
+                {{ talk.get_audience_level_display }}
+                {{ talk.get_presentation_type_display }}
+                by
+                {{ talk.speaker }}
+                {% if talk.additional_speakers.all %}
+                    with
+                    {{ talk.additional_speakers.all|join:", " }}
+                {% endif %}
+                {% if talk.slot %}
+                    <div class="slot">{{ talk.slot.start|localtime:timezone|date:"F jS" }} {{ talk.slot.start|localtime:timezone|date:"P" }} &ndash; {{ talk.slot.end|localtime:timezone|date:"P" }}</div>
+                {% endif %}
+
+                <div class="description">{{ talk.description }}</div>
+   
+                <div class="abstract">{{ talk.abstract_html|safe }}</div>
+
+                <div class="badges">
+                    {% if talk.extreme_pycon %}
+                        <div class="badge extreme">E</div>
+                    {% endif %}
+                    {% if talk.invited %}
+                        <div class="badge invited">I</div>
+                    {% endif %}
+                    <div class="clear"></div>
+                </div>
+                <a class="top-link" href="#top">(top)</a>
+            </div>
+        </div>
+    {% empty %}
+        <p>No accepted talks yet.</p>
+    {% endfor %}
+
+    <h2 id="panels">Panels</h2>
+    {% for panel in panels %}
+        <div class="session{% cycle '' ' alt' %}" id="{{ panel.title|slugify }}">
+            <div class="title">
+                <a href="{% url schedule_presentation panel.pk %}">{{ panel.title }}</a>
+            </div>
+            <div class="metadata">
+                {{ panel.get_audience_level_display }}
+                {{ panel.get_presentation_type_display }}
+                by
+                {{ panel.speaker }}
+                {% if panel.additional_speakers.all %}
+                    with
+                    {{ panel.additional_speakers.all|join:", " }}
+                {% endif %}
+                {% if panel.slot %}
+                    <div class="slot">{{ panel.slot.start|localtime:timezone|date:"F jS" }} {{ panel.slot.start|localtime:timezone|date:"P" }} &ndash; {{ panel.slot.end|localtime:timezone|date:"P" }}</div>
+                {% endif %}
+
+                <div class="description">{{ panel.description }}</div>
+   
+                <div class="abstract">{{ panel.abstract_html|safe }}</div>
+
+                <div class="badges">
+                    {% if panel.extreme_pycon %}
+                        <div class="badge extreme">E</div>
+                    {% endif %}
+                    {% if panel.invited %}
+                        <div class="badge invited">I</div>
+                    {% endif %}
+                    <div class="clear"></div>
+                </div>
+                <a class="top-link" href="#top">(top)</a>
+            </div>
+        </div>
+    {% empty %}
+        <p>No accepted panels yet.</p>
+    {% endfor %}
+        
+{% endblock %}
+
+{% block extra_body_base %}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var talks_link = $('a[href="#talks"]');
+            var panels_link = $('a[href="#panels"]');
+            var talks_list = $('div.all-talks');
+            var panels_list = $('div.all-panels');
+            
+            talks_link.click(function() {
+                panels_list.hide();
+                talks_list.fadeIn();
+                return false;
+            });
+
+            panels_link.click(function() {
+                talks_list.hide();
+                panels_list.fadeIn();
+                return false;
+            });
+
+            if (window.location.hash == '#panels') {
+                panels_link.trigger('click');
+            }
+
+            if (window.location.hash == '#talks') {
+                talks_link.trigger('click');
+            }
+        });
+    </script>
+    {% block extra_body %}{% endblock %}
+{% endblock %}
